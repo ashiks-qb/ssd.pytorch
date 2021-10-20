@@ -5,9 +5,11 @@ from torch.autograd import Variable
 from layers import *
 from data import voc, coco
 import os
+import pytorch_lightning as pl
 
 
-class SSD(nn.Module):
+
+class SSD(pl.LightningModule):
     """Single Shot Multibox Architecture
     The network is composed of a base VGG network followed by the
     added multibox conv layers.  Each multibox layer branches into
@@ -95,6 +97,8 @@ class SSD(nn.Module):
 
         loc = torch.cat([o.view(o.size(0), -1) for o in loc], 1)
         conf = torch.cat([o.view(o.size(0), -1) for o in conf], 1)
+        self.priors = self.priors.type_as(x)
+
         if self.phase == "test":
             output = self.detect(
                 loc.view(loc.size(0), -1, 4),                   # loc preds

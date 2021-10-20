@@ -5,9 +5,10 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from data import coco as cfg
 from ..box_utils import match, log_sum_exp
+import pytorch_lightning as pl
 
 
-class MultiBoxLoss(nn.Module):
+class MultiBoxLoss(pl.LightningModule):
     """SSD Weighted Loss Function
     Compute Targets:
         1) Produce Confidence Target Indices by matching  ground truth boxes
@@ -31,10 +32,8 @@ class MultiBoxLoss(nn.Module):
     """
 
     def __init__(self, num_classes, overlap_thresh, prior_for_matching,
-                 bkg_label, neg_mining, neg_pos, neg_overlap, encode_target,
-                 use_gpu=True):
+                 bkg_label, neg_mining, neg_pos, neg_overlap, encode_target):
         super(MultiBoxLoss, self).__init__()
-        self.use_gpu = use_gpu
         self.num_classes = num_classes
         self.threshold = overlap_thresh
         self.background_label = bkg_label
@@ -65,19 +64,14 @@ class MultiBoxLoss(nn.Module):
 
         # match priors (default boxes) and ground truth boxes
         loc_t = torch.Tensor(num, num_priors, 4)
-        conf_t = torch.LongTensor(num, num_priors)
+        loc_t = loc_t.type_as(priors)
+        conf_t = torch.LongTensor(num, num_priors).to(self.device)
         for idx in range(num):
             truths = targets[idx][:, :-1].data
             labels = targets[idx][:, -1].data
             defaults = priors.data
             match(self.threshold, truths, defaults, self.variance, labels,
                   loc_t, conf_t, idx)
-        if self.use_gpu:
-            loc_t = loc_t.cuda()
-            conf_t = conf_t.cuda()
-        # wrap targets
-        loc_t = Variable(loc_t, requires_grad=False)
-        conf_t = Variable(conf_t, requires_grad=False)
 
         pos = conf_t > 0
         num_pos = pos.sum(dim=1, keepdim=True)
