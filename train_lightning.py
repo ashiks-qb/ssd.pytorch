@@ -111,21 +111,24 @@ class SSDModel(pl.LightningModule):
         return optimizer
     
     def on_train_start(self):
-        print('Using the specified args:')
-        print(args)
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        print('\n\nUsing the specified args:\n')
+        pp.pprint(vars(args))
+        print('\n')
 
     def training_step(self, train_batch, batch_idx):
         images, targets = train_batch
         out = self(images)
         loss_l, loss_c = self.criterion(out, targets)
         loss = loss_l + loss_c
-
+        self.log("train_loss", loss)
         return loss
 
     def train_dataloader(self):
         data_loader = data.DataLoader(dataset, args.batch_size,
                                   num_workers=args.num_workers,
-                                  shuffle=False, collate_fn=detection_collate,
+                                  shuffle=True, collate_fn=detection_collate,
                                   pin_memory=True)
         return data_loader
 
@@ -150,7 +153,7 @@ def adjust_learning_rate(optimizer, gamma, step):
 
 
 def xavier(param):
-    init.xavier_uniform(param)
+    init.xavier_uniform_(param)
 
 
 def weights_init(m):

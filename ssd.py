@@ -33,7 +33,7 @@ class SSD(pl.LightningModule):
         self.num_classes = num_classes
         self.cfg = (coco, voc)[num_classes == 21]
         self.priorbox = PriorBox(self.cfg)
-        self.priors = Variable(self.priorbox.forward(), volatile=True)
+        self.priors = self.priorbox.forward()
         self.size = size
 
         # SSD network

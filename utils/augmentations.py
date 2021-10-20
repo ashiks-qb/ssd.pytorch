@@ -6,6 +6,9 @@ import types
 from numpy import random
 
 
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+
+
 def intersect(box_a, box_b):
     max_xy = np.minimum(box_a[:, 2:], box_b[2:])
     min_xy = np.maximum(box_a[:, :2], box_b[:2])
