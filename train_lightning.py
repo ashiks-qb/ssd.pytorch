@@ -99,16 +99,43 @@ class SSDModel(pl.LightningModule):
             self.ssd_net.conf.apply(weights_init)
 
         self.net.train() 
+        self.step_index = 0
 
     def forward(self, images):
         return self.net(images)
 
     def configure_optimizers(self):
-        optimizer = optim.SGD(self.net.parameters(), lr=args.lr, 
-                              momentum=args.momentum, 
-                              weight_decay=args.weight_decay)
+        optimizer = optim.SGD(
+            self.net.parameters(),
+            lr=args.lr,
+            momentum=args.momentum,
+            weight_decay=args.weight_decay,
+        )
 
-        return optimizer
+        def adjust_learning_rate(step):
+            """Sets the learning rate to the initial LR decayed by 10 at every
+                specified step
+            # Adapted from PyTorch Imagenet example:
+            # https://github.com/pytorch/examples/blob/master/imagenet/main.py
+            """
+            if step in cfg["lr_steps"]:
+                self.step_index += 1
+                lr_scale = args.gamma ** (self.step_index)
+            else:
+                lr_scale = 1
+
+            return lr_scale
+
+        scheduler = optim.lr_scheduler.LambdaLR(
+            optimizer, lr_lambda=adjust_learning_rate
+        )
+        lr_scheduler_config = {
+            "scheduler": scheduler,
+            "interval": "step",
+            "frequency": 1,
+        }
+
+        return [optimizer], [lr_scheduler_config]
     
     def on_train_start(self):
         import pprint
@@ -136,9 +163,7 @@ class SSDModel(pl.LightningModule):
         if self.current_epoch != 0 and self.current_epoch % 5000 == 0:
             torch.save(self.ssd_net.state_dict(), 'weights/ssd300_COCO_' +
                        repr(self.current_epoch) + '.pth')
-
     #TODO: Dataparallel
-    #TODO: learning_rate_optimization
 
 
 def adjust_learning_rate(optimizer, gamma, step):
