@@ -1,0 +1,4 @@
+opencv-python==4.5.5.62
+pytorch-lightning==1.5.8
+torch==1.7.1+cu101
+torchvision==0.8.2+cu101
