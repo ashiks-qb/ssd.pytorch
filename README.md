@@ -1,4 +1,4 @@
-# SSD: Single Shot MultiBox Object Detector, in PyTorch
+# SSD: Single Shot MultiBox Object Detector, in PyTorch Lightning
 A [PyTorch](http://pytorch.org/) implementation of [Single Shot MultiBox Detector](http://arxiv.org/abs/1512.02325) from the 2016 paper by Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang, and Alexander C. Berg.  The official and original Caffe code can be found [here](https://github.com/weiliu89/caffe/tree/ssd).
 
 
@@ -83,6 +83,16 @@ python train.py
   * For training, an NVIDIA GPU is strongly recommended for speed.
   * For instructions on Visdom usage/installation, see the <a href='#installation'>Installation</a> section.
   * You can pick-up training from a checkpoint by specifying the path as one of the training parameters (again, see `train.py` for options)
+
+## Training Pytorch Lightning
+- Follow same steps in Training SSD, except for running the python script `train.py`
+- Install requirements.txt
+
+```Shell
+python train_lightning.py
+```
+- Edit `train_lightning.py` to set required trainer flags
+
 
 ## Evaluation
 To evaluate a trained network:
